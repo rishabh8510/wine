@@ -1,5 +1,3 @@
-
-
 import Image from "next/image";
 import Link from "next/link";
 import { HiOutlineArrowLongRight } from "react-icons/hi2";
@@ -70,7 +68,7 @@ export default function FeatureListBanner({
               />
             )}
 
-            <h2 className="relative text-4xl font-normal sm:text-5xl">
+            <h2 className="relative text-2xl font-normal sm:text-3xl lg:text-4xl">
               {title}
             </h2>
 
@@ -85,11 +83,11 @@ export default function FeatureListBanner({
                 <li key={item.href + item.label}>
                   <Link
                     href={item.href}
-                    className="group inline-flex items-center gap-3 text-lg sm:text-xl lg:text-2xl"
+                    className="group inline-flex items-center gap-3 text-base sm:text-lg lg:text-xl"
                   >
                     {item.label}
                     <HiOutlineArrowLongRight
-                      className="h-5 w-5 transition-transform group-hover:translate-x-1"
+                      className="h-4 w-4 transition-transform group-hover:translate-x-1 sm:h-5 sm:w-5"
                       aria-hidden="true"
                     />
                   </Link>

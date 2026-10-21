@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { HiOutlineArrowLongRight } from "react-icons/hi2";
@@ -23,12 +24,64 @@ export default function Login({
   forgotHref?: string;
   joinHref?: string;
 }) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const handleSubmit = (e: { preventDefault: () => void; }) => {
+  useEffect(() => {
+    const isAgeVerified = localStorage.getItem("age-verified") === "true";
+    if (!isAgeVerified) {
+      router.push("/age-verification");
+      return;
+    }
+
+    const regEmail = localStorage.getItem("registeredEmail");
+    if (regEmail) {
+      const timeoutId = window.setTimeout(() => {
+        setEmail(regEmail);
+        setSuccess("Account created successfully! Please enter your password to log in.");
+        localStorage.removeItem("registeredEmail");
+      }, 0);
+      return () => window.clearTimeout(timeoutId);
+    }
+  }, [router]);
+
+  const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    onSubmit?.({ email, password });
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const cleanEmail = email.trim().toLowerCase();
+      const matched = users.find(
+        (u: { email?: string; password?: string }) =>
+          u.email?.trim().toLowerCase() === cleanEmail && u.password === password
+      );
+
+      if (matched) {
+        setSuccess("Login successful! Redirecting...");
+        localStorage.setItem("currentUser", JSON.stringify(matched));
+        window.dispatchEvent(new Event("storage"));
+        onSubmit?.({ email, password });
+        setTimeout(() => {
+          router.push("/wines");
+        }, 600);
+      } else {
+        const emailExists = users.some(
+          (u: { email?: string }) => u.email?.trim().toLowerCase() === cleanEmail
+        );
+        if (emailExists) {
+          setError("Incorrect password. Please try again.");
+        } else {
+          setError("No account found with this email. Please register first.");
+        }
+      }
+    } catch {
+      setError("An error occurred during login. Please try again.");
+    }
   };
 
   const inputClass =
@@ -39,13 +92,30 @@ export default function Login({
     <section
       className={`${baskerville.className} w-full bg-[#EFE6DC] py-10 text-[#3A322C] lg:py-14`}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-30">
         <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[1fr_1.08fr] lg:gap-14">
           {/* LEFT: form */}
           <div>
             <h1 className="border-l-4 border-[#5F7357] pl-6 text-2xl font-semibold uppercase leading-10 tracking-[0.15em] text-black sm:pl-8 sm:text-3xl">
               Login
             </h1>
+
+            {error && (
+              <div className="mt-4 border border-[#B5524A] bg-[#B5524A]/10 p-3 text-sm text-[#B5524A]">
+                {error}{" "}
+                {error.includes("register") && (
+                  <Link href={joinHref} className="underline font-semibold">
+                    Register here
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {success && (
+              <div className="mt-4 border border-[#5F7357] bg-[#5F7357]/10 p-3 text-sm text-[#5F7357]">
+                {success}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="mt-10 sm:mt-12">
               <div>

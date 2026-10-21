@@ -6,18 +6,19 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Libre_Baskerville, Inter } from "next/font/google";
+import { addToCart } from "@/lib/cart";
 
 const serif = Libre_Baskerville({ subsets: ["latin"], weight: ["400"] });
 const sans = Inter({ subsets: ["latin"], weight: ["300", "400", "500"] });
 
 const IMAGES = [
-  { src: "/images/bottle.png", alt: "Griffin Ridge Syrah bottle" },
-  { src: "/images/thumb-1.jpg", alt: "Bottle on warm background" },
-  { src: "/images/thumb-2.jpg", alt: "Two glasses of red wine" },
-  { src: "/images/thumb-3.jpg", alt: "Bottle label and cork" },
-  { src: "/images/thumb-4.jpg", alt: "Vineyard at sunset" },
+  { src: "/images/wine-1.svg", alt: "Griffin Ridge Syrah bottle" },
+  { src: "/images/wine-2.svg", alt: "Bottle on warm background" },
+  { src: "/images/wine-3.svg", alt: "Two glasses of red wine" },
+  { src: "/images/wine-4.svg", alt: "Bottle label and cork" },
+  { src: "/images/wine-5.svg", alt: "Vineyard at sunset" },
 ];
 
 const THUMBS = IMAGES.slice(1);
@@ -69,28 +70,53 @@ function Chevron({ open }: { open: boolean }) {
 }
 
 export default function WineView() {
+  const router = useRouter();
   const [active, setActive] = useState(0);
   const [qty, setQty] = useState(1);
+  const [vintage, setVintage] = useState("2023");
   const [wished, setWished] = useState(false);
   const [openKey, setOpenKey] = useState<string | null>("shipping");
 
+  const handleAddToCart = () => {
+    const isLogged =
+      typeof window !== "undefined"
+        ? localStorage.getItem("currentUser")
+        : null;
+    if (!isLogged) {
+      router.push("/login");
+      return;
+    }
+
+    addToCart({
+      id: `griffin-ridge-syrah-${vintage}`,
+      name: "Griffin Ridge Syrah",
+      vintage,
+      variety: "Syrah",
+      sku: `GL-SY-${vintage}`,
+      price: 74,
+      qty,
+      image: IMAGES[0].src || "/images/wine-1.svg",
+    });
+    router.push("/cart");
+  };
+
   return (
     <main
-      className={`${sans.className} min-h-screen bg-[#EFE6DB] text-[#3a2f27]`}
+      className={`${sans.className} min-h-screen  bg-[#EFE6DB] text-[#3a2f27]`}
     >
       {/* ===== TOP SECTION ===== */}
       <section className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12 xl:gap-16">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12 xl:gap-16 mt-30">
           {/* ---- Left: gallery ---- */}
           <div className="w-full">
-            <div className="relative aspect-[9/10] w-full bg-[#E6D9CA]">
+            <div className="relative aspect-[9/10] w-full">
               <Image
                 src={IMAGES[active].src}
                 alt={IMAGES[active].alt}
                 fill
                 priority
                 sizes="(min-width: 1024px) 50vw, 100vw"
-                className={active === 0 ? "object-contain p-6 sm:p-10" : "object-cover"}
+                className={active === 0 ? "object-cover p-6 sm:p-10" : "object-cover"}
               />
             </div>
 
@@ -137,13 +163,14 @@ export default function WineView() {
 
               <div className="relative mt-3 shrink-0">
                 <select
-                  defaultValue="2023"
+                  value={vintage}
+                  onChange={(e) => setVintage(e.target.value)}
                   aria-label="Vintage"
                   className="h-8 w-20 appearance-none border border-[#d9ccbb] bg-[#f3ece3] pr-6 pl-3 text-xs tracking-wide outline-none sm:h-9 sm:w-24"
                 >
-                  <option>2023</option>
-                  <option>2022</option>
-                  <option>2021</option>
+                  <option value="2023">2023</option>
+                  <option value="2022">2022</option>
+                  <option value="2021">2021</option>
                 </select>
                 <svg
                   viewBox="0 0 24 24"
@@ -212,18 +239,20 @@ export default function WineView() {
 
             {/* CTA buttons */}
             <div className="mt-3.5 flex flex-col gap-2 sm:flex-row">
-              <Link
-                href="/cart"
-                className={`${serif.className} flex h-11 flex-1 items-center justify-center bg-[#b9a07d] text-xs text-white transition hover:bg-[#a98f6b]`}
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className={`${serif.className} flex h-11 flex-1 items-center justify-center bg-[#b9a07d] text-xs text-white transition hover:bg-[#a98f6b] cursor-pointer`}
               >
                 Add to Cart
-              </Link>
-              <Link
-                href="/cart"
-                className={`${serif.className} flex h-11 flex-1 items-center justify-center border border-[#3a2f27] bg-transparent text-xs text-[#3a2f27] transition hover:bg-[#3a2f27] hover:text-white`}
+              </button>
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className={`${serif.className} flex h-11 flex-1 items-center justify-center border border-[#3a2f27] bg-transparent text-xs text-[#3a2f27] transition hover:bg-[#3a2f27] hover:text-white cursor-pointer`}
               >
                 Buy Now
-              </Link>
+              </button>
             </div>
 
             {/* accordion */}

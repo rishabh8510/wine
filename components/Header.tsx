@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const navLinks = [
   { label: "Vineyard", href: "/vineyard" },
@@ -12,8 +12,10 @@ const navLinks = [
 ];
 
 export default function Header() {
+  const router = useRouter();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ firstName?: string; email?: string } | null>(null);
 
   // Menu ke liye pathname store karte hain: jis page par menu khula,
   // sirf usi page par open maana jayega. Page badla => menu auto band.
@@ -33,6 +35,40 @@ export default function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const syncUser = () => {
+      try {
+        const stored = localStorage.getItem("currentUser");
+        setCurrentUser(stored ? JSON.parse(stored) : null);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+    syncUser();
+    window.addEventListener("storage", syncUser);
+    return () => window.removeEventListener("storage", syncUser);
+  }, []);
+
+  const handleLoginClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    closeMenu();
+    const isAgeVerified = localStorage.getItem("age-verified") === "true";
+    if (!isAgeVerified) {
+      router.push("/age-verification");
+    } else {
+      router.push("/login");
+    }
+  };
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("currentUser");
+    } catch {}
+    setCurrentUser(null);
+    window.dispatchEvent(new Event("storage"));
+    closeMenu();
+  };
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
@@ -112,7 +148,28 @@ export default function Header() {
             </svg>
           </button>
 
-          <Link href="/cart" aria-label="Cart" className="text-[#BBA27E] hover:opacity-80">
+          <button
+            type="button"
+            onClick={() => {
+              const isLogged =
+                typeof window !== "undefined"
+                  ? localStorage.getItem("currentUser")
+                  : null;
+              if (!isLogged) {
+                const isAgeVerified =
+                  localStorage.getItem("age-verified") === "true";
+                if (!isAgeVerified) {
+                  router.push("/age-verification");
+                } else {
+                  router.push("/login");
+                }
+              } else {
+                router.push("/cart");
+              }
+            }}
+            aria-label="Cart"
+            className="text-[#BBA27E] hover:opacity-80 cursor-pointer"
+          >
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -126,25 +183,57 @@ export default function Header() {
               <circle cx="9" cy="19" r="1.3" />
               <circle cx="17" cy="19" r="1.3" />
             </svg>
-          </Link>
+          </button>
 
-          <Link
-            href="/login"
-            className="hidden items-center gap-3 bg-[#BBA27E] px-7 py-3.5 font-serif text-[17px] text-white transition-colors hover:bg-[#a98f6b] sm:inline-flex"
-          >
-            Log In
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-5 w-5"
+          {currentUser ? (
+            <div className="flex items-center gap-3">
+              <Link
+                href="/account"
+                aria-label="Profile"
+                className="flex items-center gap-2.5 bg-[#BBA27E] px-5 py-3 font-serif text-[16px] text-white transition-colors hover:bg-[#a98f6b]"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span>{currentUser.firstName || "Account"}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="hidden border border-[#BBA27E] px-4 py-2.5 font-serif text-[14px] text-[#3A322C] transition-colors hover:bg-[#BBA27E] hover:text-white sm:inline-flex cursor-pointer"
+              >
+                Log Out
+              </button>
+            </div>
+          ) : (
+            <a
+              href="/login"
+              onClick={handleLoginClick}
+              className="hidden items-center gap-3 bg-[#BBA27E] px-7 py-3.5 font-serif text-[17px] text-white transition-colors hover:bg-[#a98f6b] sm:inline-flex"
             >
-              <path d="M4 12h16M14 6l6 6-6 6" />
-            </svg>
-          </Link>
+              Log In
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+              >
+                <path d="M4 12h16M14 6l6 6-6 6" />
+              </svg>
+            </a>
+          )}
         </div>
       </div>
 
@@ -164,13 +253,44 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/login"
-              onClick={closeMenu}
-              className="mt-2 bg-[#BBA27E] px-4 py-3 text-center font-serif text-white"
-            >
-              Log In
-            </Link>
+            {currentUser ? (
+              <>
+                <Link
+                  href="/account"
+                  onClick={closeMenu}
+                  className="flex items-center gap-2 px-2 py-3 text-[15px] font-medium text-black"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 text-[#BBA27E]"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  My Account ({currentUser.firstName || "Profile"})
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="mt-2 bg-[#BBA27E] px-4 py-3 text-center font-serif text-white w-full cursor-pointer"
+                >
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <a
+                href="/login"
+                onClick={handleLoginClick}
+                className="mt-2 bg-[#BBA27E] px-4 py-3 text-center font-serif text-white block"
+              >
+                Log In
+              </a>
+            )}
           </div>
         </nav>
       )}

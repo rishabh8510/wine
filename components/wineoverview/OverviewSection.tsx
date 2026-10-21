@@ -59,7 +59,7 @@ export default function OverviewSection() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Title + year select */}
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-5xl leading-tight sm:text-6xl">Overview</h1>
+          <h1 className="text-3xl leading-tight sm:text-4xl">Overview</h1>
 
           <div className="relative shrink-0">
             <label htmlFor="year" className="sr-only">
@@ -89,17 +89,17 @@ export default function OverviewSection() {
           {/* LEFT: notes */}
           <div>
             <article>
-              <h2 className="text-2xl sm:text-3xl">Vintage Notes</h2>
+              <h2 className="text-xl sm:text-2xl">Vintage Notes</h2>
               <span className="mt-4 block h-px w-14 bg-[#CFC2B0]" aria-hidden="true" />
-              <p className="mt-6 text-base leading-8 sm:text-lg sm:leading-9">
+              <p className="mt-6 text-sm leading-7 sm:text-base sm:leading-8">
                 {data.vintageNotes}
               </p>
             </article>
 
             <article className="mt-12 lg:mt-16">
-              <h2 className="text-2xl sm:text-3xl">Winegrowing Notes</h2>
+              <h2 className="text-xl sm:text-2xl">Winegrowing Notes</h2>
               <span className="mt-4 block h-px w-14 bg-[#CFC2B0]" aria-hidden="true" />
-              <p className="mt-6 text-base leading-8 sm:text-lg sm:leading-9">
+              <p className="mt-6 text-sm leading-7 sm:text-base sm:leading-8">
                 {data.winegrowingNotes}
               </p>
             </article>
@@ -111,7 +111,7 @@ export default function OverviewSection() {
               {details.map((item) => (
                 <div key={item.label}>
                   <dt className="text-xs tracking-[0.2em] text-[#5B534B]">{item.label}</dt>
-                  <dd className="mt-3 text-lg tracking-[0.14em] text-[#5B534B] sm:text-xl">
+                  <dd className="mt-3 text-base tracking-[0.14em] text-[#5B534B] sm:text-lg">
                     {item.value}
                   </dd>
                 </div>

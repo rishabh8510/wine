@@ -19,18 +19,18 @@ export default function OverviewHero() {
       <div className="relative z-10 flex w-full max-w-7xl flex-col items-start justify-center px-6 py-20 mx-auto sm:px-12 lg:px-16 mt-20">
         
         {/* Small Top Text */}
-        <span className="mb-4 font-sans text-sm font-medium tracking-wide text-[#e8e6e1] sm:text-base">
+        <span className="mb-4 font-sans text-xs font-medium tracking-wide text-[#e8e6e1] sm:text-sm">
           Spring 2027
         </span>
 
         {/* Main Heading */}
-        <h1 className="mb-6 font-serif text-5xl font-normal leading-tight text-white sm:text-6xl md:text-7xl">
+        <h1 className="mb-6 font-serif text-3xl font-normal leading-tight text-white sm:text-4xl md:text-5xl">
           Griffin&apos;s Lair Rose
         </h1>
 
         {/* Paragraph Text */}
-        <p className="max-w-2xl font-serif text-lg leading-relaxed text-[#e8e6e1] sm:text-xl md:text-2xl">
-An exclusive selection of Griffin&apos;s Lair wines curated for our members.
+        <p className="max-w-2xl font-serif text-base leading-relaxed text-[#e8e6e1] sm:text-lg md:text-xl">
+          An exclusive selection of Griffin&apos;s Lair wines curated for our members.
         </p>
 
       </div>

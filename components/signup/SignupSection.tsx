@@ -6,6 +6,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   HiChevronDown,
   HiOutlineArrowLongRight,
@@ -149,15 +150,35 @@ function Checkbox({ id, children, required }: { id: string; children: React.Reac
 
 const Divider = () => <hr className="my-8 border-t border-[#E3D9CB] lg:my-10" />;
 
+function createUserRecord(
+  data: Record<string, FormDataEntryValue>,
+  email: string,
+  password: string
+) {
+  const timestamp = Date.now();
+  return {
+    id: timestamp.toString(),
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email,
+    phone: data.phone,
+    password,
+    birthMonth: data.birthMonth,
+    birthDay: data.birthDay,
+    birthYear: data.birthYear,
+    country: data.country,
+    address1: data.address1,
+    address2: data.address2,
+    city: data.city,
+    state: data.state,
+    zip: data.zip,
+    company: data.company,
+    createdAt: new Date(timestamp).toISOString(),
+  };
+}
+
 /* ---------- main component ---------- */
 
-/**
- * Props (sab optional)
- * - onSubmit            : (formDataObject) => void  (yahan apna signup API call lagao)
- * - loginHref           : "Log In" link
- * - introductionOptions : "Whom may we thank..." dropdown ke options
- * - tasteOptions        : "Where did you first taste..." dropdown ke options
- */
 export default function SignupSection({
   onSubmit,
   loginHref = "/login",
@@ -169,10 +190,54 @@ export default function SignupSection({
   introductionOptions?: string[];
   tasteOptions?: string[];
 }) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(e.currentTarget).entries());
-    onSubmit?.(data);
+    setError(null);
+    setSuccess(null);
+
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    const password = String(data.password || "");
+    const confirmPassword = String(data.confirmPassword || "");
+    const email = String(data.email || "").trim().toLowerCase();
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match. Please verify and try again.");
+      return;
+    }
+
+    try {
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const exists = users.some(
+        (u: { email?: string }) => u.email?.trim().toLowerCase() === email
+      );
+
+      if (exists) {
+        setError("An account with this email already exists. Please log in.");
+        return;
+      }
+
+      const newUser = createUserRecord(data, email, password);
+
+      users.push(newUser);
+      localStorage.setItem("users", JSON.stringify(users));
+      localStorage.setItem("registeredEmail", email);
+      localStorage.setItem("age-verified", "true");
+
+      setSuccess("Account created successfully! Redirecting to login...");
+      onSubmit?.(data);
+
+      setTimeout(() => {
+        router.push("/login");
+      }, 800);
+    } catch {
+      setError("Failed to save account. Please try again.");
+    }
   };
 
   return (
@@ -180,6 +245,23 @@ export default function SignupSection({
       className={`${baskerville.className} w-full bg-[#EFE6DC] py-10 text-[#3A322C] lg:py-14`}
     >
       <form onSubmit={handleSubmit} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {error && (
+          <div className="mb-8 border border-[#B5524A] bg-[#B5524A]/10 p-4 text-sm text-[#B5524A]">
+            {error}{" "}
+            {error.includes("already exists") && (
+              <Link href={loginHref} className="underline font-semibold">
+                Log In here
+              </Link>
+            )}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-8 border border-[#5F7357] bg-[#5F7357]/10 p-4 text-sm text-[#5F7357]">
+            {success}
+          </div>
+        )}
+
         {/* 1. Personal + Contact */}
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-x-14">
           {/* Personal */}
@@ -323,20 +405,3 @@ export default function SignupSection({
     </section>
   );
 }
-
-// ---------------------------------------------------------------
-// USAGE: app/join/page.jsx
-//
-// "use client";
-// import SignupSection from "@/components/SignupSection";
-//
-// export default function JoinPage() {
-//   return (
-//     <SignupSection
-//       onSubmit={async (data) => {
-//         // data = { firstName, lastName, birthMonth, ..., agreeTerms }
-//       }}
-//     />
-//   );
-// }
-// ---------------------------------------------------------------

@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HiHeart, HiOutlineHeart, HiOutlinePlus } from "react-icons/hi2";
+import { addToCart } from "@/lib/cart";
 
 export type StockStatus = "In Stock" | "Low Stock" | "Sold Out";
 
@@ -53,9 +54,28 @@ export default function WineCard({ wine, onAddToCart, onToggleFavorite }: WineCa
   };
 
   const handleAddToCartClick = () => {
+    const isLogged =
+      typeof window !== "undefined"
+        ? localStorage.getItem("currentUser")
+        : null;
+    if (!isLogged) {
+      router.push("/login");
+      return;
+    }
+
     if (onAddToCart) {
       onAddToCart(wine.id, quantity);
     } else {
+      addToCart({
+        id: wine.id,
+        name: wine.name,
+        vintage: "2024",
+        variety: wine.producer || "Sauvignon Blanc",
+        sku: `GL-${wine.id.toUpperCase()}`,
+        price: wine.price,
+        qty: quantity,
+        image: wine.image,
+      });
       router.push("/cart");
     }
   };

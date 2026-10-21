@@ -54,7 +54,7 @@ export default function FeatureBanner({
               />
             )}
 
-            <h2 className="relative text-4xl font-normal sm:text-5xl">
+            <h2 className="relative text-2xl font-normal sm:text-3xl lg:text-4xl">
               {title}
             </h2>
 
@@ -66,10 +66,10 @@ export default function FeatureBanner({
             {/* after:inset-0 => poora card clickable ho jata hai */}
             <Link
               href={href}
-              className="inline-flex items-center gap-3 text-base after:absolute after:inset-0 after:content-[''] sm:text-lg"
+              className="inline-flex items-center gap-3 text-sm after:absolute after:inset-0 after:content-[''] sm:text-base"
             >
               {linkText}
-              <HiOutlineArrowLongRight className="h-5 w-5" aria-hidden="true" />
+              <HiOutlineArrowLongRight className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
             </Link>
           </div>
 

@@ -1,76 +1,123 @@
 "use client";
 
 // app/cart/page.tsx  (Next.js App Router + TypeScript + Tailwind CSS)
-// Image: public/images/bottle.png
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Libre_Baskerville, Inter } from "next/font/google";
+import {
+  getCart,
+  updateCartItemQty,
+  removeFromCart,
+  clearCart,
+  type CartItem,
+} from "@/lib/cart";
+import { saveOrder, createOrderFromCart } from "@/lib/orders";
 
 const serif = Libre_Baskerville({ subsets: ["latin"], weight: ["400"] });
 const sans = Inter({ subsets: ["latin"], weight: ["300", "400", "500"] });
-
-type CartItem = {
-  id: number;
-  name: string;
-  vintage: string;
-  variety: string;
-  sku: string;
-  price: number;
-  qty: number;
-  image: string;
-};
-
-const INITIAL_ITEMS: CartItem[] = [
-  {
-    id: 1,
-    name: "Lair Hill Chardonnay",
-    vintage: "2022",
-    variety: "Chardonnay",
-    sku: "GL-CH-2022",
-    price: 42,
-    qty: 1,
-    image: "/images/bottle.png",
-  },
-  {
-    id: 2,
-    name: "Lair Hill Chardonnay",
-    vintage: "2022",
-    variety: "Chardonnay",
-    sku: "GL-CH-2022",
-    price: 42,
-    qty: 1,
-    image: "/images/bottle.png",
-  },
-];
-
-// Screenshot jaisi values (static). Real project me yeh items se calculate karna.
-const SUMMARY = { subtotal: 74, shipping: 16, tax: 10, total: 100 };
 
 const money = (n: number) =>
   `$${n.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
 
 export default function CartPage() {
-  const [items, setItems] = useState<CartItem[]>(INITIAL_ITEMS);
+  const router = useRouter();
+  const [authorized, setAuthorized] = useState(false);
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [orderNotice, setOrderNotice] = useState<string | null>(null);
 
-  const updateQty = (id: number, delta: number) =>
-    setItems((prev) =>
-      prev.map((it) =>
-        it.id === id ? { ...it, qty: Math.max(1, it.qty + delta) } : it
-      )
-    );
+  useEffect(() => {
+    let active = true;
+    let initializeTimer: ReturnType<typeof setTimeout>;
 
-  const remove = (id: number) =>
-    setItems((prev) => prev.filter((it) => it.id !== id));
+    try {
+      const user = localStorage.getItem("currentUser");
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      initializeTimer = setTimeout(() => {
+        if (!active) return;
+        setAuthorized(true);
+        setItems(getCart());
+      }, 0);
+    } catch {
+      router.push("/login");
+      return;
+    }
+
+    const handleStorage = () => {
+      setItems(getCart());
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      active = false;
+      clearTimeout(initializeTimer);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [router]);
+
+  if (!authorized) {
+    return null;
+  }
+
+  const handleUpdateQty = (id: string | number, delta: number) => {
+    const updated = updateCartItemQty(id, delta);
+    setItems(updated);
+  };
+
+  const handleRemove = (id: string | number) => {
+    const updated = removeFromCart(id);
+    setItems(updated);
+  };
 
   const bottles = items.reduce((sum, it) => sum + it.qty, 0);
+  const subtotal = items.reduce((sum, it) => sum + it.price * it.qty, 0);
+  const shipping = items.length > 0 ? (subtotal >= 150 ? 0 : 16) : 0;
+  const tax = items.length > 0 ? Math.round(subtotal * 0.08 * 100) / 100 : 0;
+  const total = subtotal + shipping + tax;
+
+  const handleCheckout = () => {
+    if (items.length === 0) return;
+
+    try {
+      const userStr = localStorage.getItem("currentUser");
+      if (!userStr) {
+        setOrderNotice("Please log in to proceed to checkout.");
+        setTimeout(() => {
+          router.push("/login");
+        }, 1000);
+        return;
+      }
+
+      const currentUser = JSON.parse(userStr);
+      const newOrder = createOrderFromCart(items, currentUser, {
+        subtotal,
+        shipping,
+        tax,
+        total,
+        bottles,
+      });
+
+      saveOrder(newOrder);
+      clearCart();
+      setItems([]);
+      setOrderNotice("Order placed successfully! Redirecting to your orders...");
+      setTimeout(() => {
+        router.push("/account");
+      }, 1000);
+    } catch {
+      setOrderNotice("An error occurred during checkout. Please try again.");
+    }
+  };
 
   return (
     <main
       className={`${sans.className} min-h-screen bg-[#EFE6DB] text-[#3a2f27]`}
     >
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10 mt-20">
         {/* heading */}
         <h1
           className={`${serif.className} text-3xl leading-tight font-normal text-[#4a3b30] sm:text-4xl`}
@@ -83,6 +130,12 @@ export default function CartPage() {
           Review your wines before continuing to checkout.
         </p>
 
+        {orderNotice && (
+          <div className="mt-4 border border-[#5F7357] bg-[#5F7357]/10 p-4 text-sm text-[#5F7357]">
+            {orderNotice}
+          </div>
+        )}
+
         <div className="mt-10 grid grid-cols-1 gap-10 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-16 xl:grid-cols-[minmax(0,1fr)_24rem] xl:gap-24">
           {/* ===== LEFT: items ===== */}
           <section className="min-w-0">
@@ -92,14 +145,22 @@ export default function CartPage() {
             <div className="mt-4 border-t border-[#d4c3ae]" />
 
             {items.length === 0 && (
-              <p className="py-10 text-sm text-[#6b5d52]">
-                Your cart is empty.
-              </p>
+              <div className="py-12 text-center sm:text-left">
+                <p className="text-base text-[#6b5d52]">
+                  Your cart is currently empty.
+                </p>
+                <Link
+                  href="/wines"
+                  className={`${serif.className} mt-4 inline-flex items-center gap-2 border border-[#8a7d70] px-5 py-2 text-xs text-[#5a4d43] transition hover:bg-[#3a2f27] hover:text-white`}
+                >
+                  Explore Our Wines
+                </Link>
+              </div>
             )}
 
             {items.map((it, i) => (
               <article
-                key={it.id}
+                key={it.id + "-" + i}
                 className={`relative flex items-center gap-4 py-6 sm:gap-6 sm:py-7 ${
                   i !== items.length - 1 ? "border-b border-[#e3d8c9]" : ""
                 }`}
@@ -138,17 +199,19 @@ export default function CartPage() {
 
                   <div className="mt-4 flex h-10 w-28 items-center justify-between border border-[#cdb99c] px-4 text-xs sm:h-11 sm:w-32">
                     <button
+                      type="button"
                       aria-label="Decrease quantity"
-                      onClick={() => updateQty(it.id, -1)}
-                      className="px-1 text-lg leading-none"
+                      onClick={() => handleUpdateQty(it.id, -1)}
+                      className="px-1 text-lg leading-none cursor-pointer"
                     >
                       −
                     </button>
                     <span>{it.qty}</span>
                     <button
+                      type="button"
                       aria-label="Increase quantity"
-                      onClick={() => updateQty(it.id, 1)}
-                      className="px-1 text-lg leading-none"
+                      onClick={() => handleUpdateQty(it.id, 1)}
+                      className="px-1 text-lg leading-none cursor-pointer"
                     >
                       +
                     </button>
@@ -157,8 +220,9 @@ export default function CartPage() {
 
                 {/* remove */}
                 <button
-                  onClick={() => remove(it.id)}
-                  className="absolute top-6 right-0 flex items-center gap-2 text-[10px] tracking-[0.14em] text-[#5a4d43] uppercase transition hover:text-black sm:top-7"
+                  type="button"
+                  onClick={() => handleRemove(it.id)}
+                  className="absolute top-6 right-0 flex items-center gap-2 text-[10px] tracking-[0.14em] text-[#5a4d43] uppercase transition hover:text-black sm:top-7 cursor-pointer"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -188,15 +252,15 @@ export default function CartPage() {
               <div className="mt-4 border-t border-[#d4c3ae]">
                 <div className="flex h-10 items-center justify-between border-b border-[#e6dccd] text-sm">
                   <span>Subtotal</span>
-                  <span>{money(SUMMARY.subtotal)}</span>
+                  <span>{money(subtotal)}</span>
                 </div>
                 <div className="flex h-10 items-center justify-between border-b border-[#e6dccd] text-sm text-[#6b5d52]">
                   <span>Shipping</span>
-                  <span>{money(SUMMARY.shipping)}</span>
+                  <span>{items.length === 0 ? money(0) : shipping === 0 ? "Complimentary" : money(shipping)}</span>
                 </div>
                 <div className="flex h-10 items-center justify-between text-sm text-[#6b5d52]">
                   <span>Estimated Tax</span>
-                  <span>{money(SUMMARY.tax)}</span>
+                  <span>{money(tax)}</span>
                 </div>
               </div>
 
@@ -205,28 +269,30 @@ export default function CartPage() {
               <div className="mt-5 flex items-baseline justify-between">
                 <span className={`${serif.className} text-lg`}>Total</span>
                 <span className={`${serif.className} text-base`}>
-                  {money(SUMMARY.total)}
+                  {money(total)}
                 </span>
               </div>
 
               <p className="mt-3 text-xs leading-5 text-[#7a6d62]">
-                Shipping and tax are added once your delivery address is
-                entered.
+                Shipping and tax are calculated based on your order.
               </p>
 
               <button
-                className={`${serif.className} mt-5 h-11 w-full bg-[#b9a07d] text-xs text-white transition hover:bg-[#a98f6b]`}
+                type="button"
+                disabled={items.length === 0}
+                onClick={handleCheckout}
+                className={`${serif.className} mt-5 h-11 w-full bg-[#b9a07d] text-xs text-white transition hover:bg-[#a98f6b] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer`}
               >
                 Proceed to Checkout
               </button>
 
               <p className="mt-4 text-center text-[11px] text-[#7a6d62]">
-                Guest checkout available — no account required.
+                Member checkout with instant confirmation.
               </p>
             </div>
 
             <Link
-              href="/"
+              href="/wines"
               className={`${serif.className} mt-5 flex h-11 w-full items-center justify-center border border-[#8a7d70] text-xs text-[#5a4d43] transition hover:bg-[#3a2f27] hover:text-white`}
             >
               Continue Shopping

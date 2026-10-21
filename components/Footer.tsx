@@ -4,8 +4,6 @@ import Image from "next/image";
 const exploreLinks = [
   { label: "Vineyard", href: "/" },
   { label: "Wines", href: "/wines" },
-  { label: "News", href: "/news" },
-  { label: "Philanthropy", href: "/philanthropy" },
   { label: "About Us", href: "/about" },
 ];
 

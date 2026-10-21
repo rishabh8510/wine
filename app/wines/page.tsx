@@ -15,51 +15,51 @@ export default function WinePages() {
         href="/wine-overview"
         image="/images/chardonnay.svg"
         imageAlt="Cheers with white wine"
-        decoration="/images/grape-faint.png"
+        decoration="/images/graps.svg"
       />
       <FeatureListBanner
-        title="Our Wines"
+        title="Roses"
         links={[
-          { label: "Chardonnay", href: "/wine-overview" },
-          { label: "Pinot Noir", href: "/wine-overview" },
-          { label: "Cabernet Sauvignon", href: "/wine-overview" },
+          { label: "Vintage 2026", href: "/wine-overview" },
+          { label: "Vintage 2025", href: "/wine-overview" },
+          { label: "Vintage 2024", href: "/wine-overview" },
         ]}
         image="/images/rose.svg"
         imageAlt="Various wine bottles"
-        decoration="/images/grape-faint.png"
+        decoration="/images/glass.svg"
       />
 
       <FeatureListBannerReverse
         title="Pinot Noir"
         image="/images/rose.svg"
         imageAlt="Cheers with wine glasses"
-        decoration="/images/bottle-glasses-faint.png"
+        decoration="/images/bottle.svg"
         links={[
-          { label: "Clos du Ciel", href: "/wine-overview" },
-          { label: "Le Caprice", href: "/wine-overview" },
-          { label: "Le Moulin Rouge®", href: "/wine-overview" },
-          { label: "Ma Danseuse", href: "/wine-overview" },
+          { label: "Vintage 2026", href: "/wine-overview" },
+          { label: "Vintage 2025", href: "/wine-overview" },
+          { label: "Vintage 2024", href: "/wine-overview" },
+          { label: "Vintage 2023", href: "/wine-overview" },
         ]}
       />
 
       <FeatureListBanner
         title="Syrah"
         links={[
-          { label: "Clos du Ciel", href: "/wine-overview" },
-          { label: "Le Caprice", href: "/wine-overview" },
-          { label: "Le Moulin Rouge®", href: "/wine-overview" },
-          { label: "Ma Danseuse", href: "/wine-overview" },
+          { label: "Vintage 2026", href: "/wine-overview" },
+          { label: "Vintage 2025", href: "/wine-overview" },
+          { label: "Vintage 2024", href: "/wine-overview" },
+          { label: "Vintage 2023", href: "/wine-overview" },
         ]}
         image="/images/rose.svg"
         imageAlt="Various wine bottles"
-        decoration="/images/grape-faint.png"
+        decoration="/images/glass.svg"
       />
 
       <FeatureListBannerReverse
         title="Cabernet Franc"
         image="/images/rose.svg"
         imageAlt="Cheers with wine glasses"
-        decoration="/images/bottle-glasses-faint.png"
+        decoration="/images/bottle.svg"
         links={[
           { label: "coming soon", href: "/wine-overview" },
         ]}
@@ -72,7 +72,7 @@ export default function WinePages() {
         ]}
         image="/images/rose.svg"
         imageAlt="Various wine bottles"
-        decoration="/images/grape-faint.png"
+        decoration="/images/glass.svg"
       />
     </>
   );

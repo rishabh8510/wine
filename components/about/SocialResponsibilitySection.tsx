@@ -25,7 +25,7 @@ export default function SocialResponsibilitySection() {
         {/* Heading */}
         <div className="relative mx-auto max-w-3xl text-center">
           <Image
-            src="/images/grape-left.png"
+            src="/images/grap-1.svg"
             alt=""
             width={100}
             height={180}
@@ -33,7 +33,7 @@ export default function SocialResponsibilitySection() {
             className="pointer-events-none absolute -left-40 top-0 hidden h-44 w-auto xl:block"
           />
           <Image
-            src="/images/grape-right.png"
+            src="/images/grap-2.svg"
             alt=""
             width={100}
             height={180}
