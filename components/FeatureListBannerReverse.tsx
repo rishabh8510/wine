@@ -1,0 +1,103 @@
+// components/FeatureListBannerReverse.jsx
+// Reusable banner: card LEFT (title + links), image RIGHT.
+// (Image LEFT wala version: FeatureListBanner.jsx)
+// Install: npm i react-icons
+
+import Image from "next/image";
+import Link from "next/link";
+import { HiOutlineArrowLongRight } from "react-icons/hi2";
+import { Baskervville } from "next/font/google";
+
+const baskerville = Baskervville({
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
+type FeatureListBannerReverseProps = {
+  title: string;
+  links?: { label: string; href: string }[];
+  image: string;
+  imageAlt?: string;
+  decoration?: string;
+};
+
+/**
+ * Props
+ * - title       : bada heading (e.g. "Pinot Noir")
+ * - links       : [{ label: "Clos du Ciel", href: "/wines/clos-du-ciel" }, ...]
+ * - image       : right side image ka path (public/images/...)
+ * - imageAlt    : image ka alt text
+ * - decoration  : (optional) halka drawing ka path (bottle + glasses), line ke neeche dikhta hai
+ */
+export default function FeatureListBannerReverse({
+  title,
+  links = [],
+  image,
+  imageAlt = "",
+  decoration,
+}: FeatureListBannerReverseProps) {
+  return (
+    <section
+      className={`${baskerville.className} w-full bg-[#EFE6DC] py-6 text-[#3A322C] lg:py-10`}
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 items-center lg:grid-cols-[63fr_37fr]">
+          {/* Card (left) */}
+          <div className="relative flex min-h-[220px] flex-col justify-center gap-6 overflow-hidden bg-[#F8F4EC] px-6 py-10 sm:px-10 lg:min-h-[340px] lg:flex-row lg:items-center lg:gap-12 lg:px-20">
+            {decoration && (
+              <Image
+                src={decoration}
+                alt=""
+                width={120}
+                height={160}
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-3 left-[46%] hidden h-[40%] w-auto lg:block"
+              />
+            )}
+
+            <h2 className="relative text-4xl font-normal sm:text-5xl">
+              {title}
+            </h2>
+
+            {/* patli line */}
+            <span
+              className="hidden h-px flex-1 bg-[#E5DCCD] lg:block"
+              aria-hidden="true"
+            />
+
+            <ul className="relative flex flex-col gap-4 lg:gap-6">
+              {links.map((item) => (
+                <li key={item.href + item.label}>
+                  <Link
+                    href={item.href}
+                    className="group inline-flex items-center gap-3 text-lg sm:text-xl lg:text-2xl"
+                  >
+                    {item.label}
+                    <HiOutlineArrowLongRight
+                      className="h-5 w-5 transition-transform group-hover:translate-x-1"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Image (right): card se lambi, upar-neeche nikli hui. Mobile par upar aati hai */}
+          <Link
+            href={links[0]?.href || "/wine-overview"}
+            className="relative order-first aspect-[4/3] w-full lg:order-none lg:aspect-[94/100]"
+          >
+            <Image
+              src={image}
+              alt={imageAlt}
+              fill
+              sizes="(min-width: 1280px) 450px, (min-width: 1024px) 37vw, 100vw"
+              className="object-cover"
+            />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
